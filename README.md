@@ -1,5 +1,4 @@
 # Heart-Attack-Risks
-# Risks of Heart Disease Prediction
 
 ## Problem Statement
 
