@@ -1,0 +1,1225 @@
+---
+title: "Risks of Heart Disease: A MTH 345 Final Paper"
+author: "Andrea Parker"
+bibliography: "References.bib"
+csl: "apa.csl"
+execute:
+  message: FALSE
+  warning: FALSE
+  echo: TRUE
+toc: TRUE
+toccolor: red
+urlcolor: purple
+number-sections: TRUE
+highlight-style: arrow
+format: 
+  html: 
+    code-fold: TRUE
+    code-line-numbers: TRUE
+    cap-location: top
+    code-block-border-left: "#582C83"
+    code-block-bg: TRUE
+    anchor-sections: TRUE
+    link-external-icon: TRUE
+    link-external-newwindow: TRUE
+  pdf:
+    documentclass: article
+    toc: TRUE
+    toc-depth: 3
+    toc-title: Contents
+    number-sections: TRUE
+    number-depth: 3
+    include-in-header:
+      - text: |
+          \usepackage{amsmath}
+          \usepackage[dvipsnames]{xcolor}
+          \usepackage[shortlabels]{enumitem}
+          \usepackage{parskip}
+          \usepackage{hyperref}
+          \usepackage{geometry}
+    geometry:
+      - top=0.75in
+      - left=0.75in
+      - bottom=0.75in
+      - right=0.75in
+  docx: default
+editor_options: 
+  chunk_output_type: inline
+---
+
+\newpage
+
+# Abstract
+
+In this study, I utilized a data set from Kaggle, encompassing $10,000$ observations and $21$ variables. In my analysis, I will use **heart disease status** as the response variable, which is a categorical variable with two classes: *yes* and *no*. The remaining $20$ variables are as follows: **Age** (discrete quantitative – years), **Gender** (categorical – male or female), **Blood pressure** (discrete quantitative – mm Hg), **Cholesterol level** (discrete quantitative – mg/dL), **Exercise habits** (categorical – high, medium, or low), **Smoking** (categorical – yes or no), **Family history of heart disease** (categorical – yes or no), **Diabetes** (categorical – yes or no), **BMI** (continuous quantitative – kg/m²),  **High blood pressure** (categorical – yes or no),  **Low HDL cholesterol** (categorical – yes or no), **High LDL cholesterol** (categorical – yes or no), **Alcohol consumption** (categorical – high, medium, low, or none), **Stress level** (categorical – high, medium, or low), **Sleep hours** (continuous quantitative – hours), **Sugar consumption** (categorical – high, medium, or low), **Triglyceride level** (discrete quantitative – mg/dL), **Fasting blood sugar** (discrete quantitative – mg/dL), **CRP level** (continuous quantitative – C-reactive protein, mg/L), and **Homocysteine level** (continuous quantitative – µmol/L). I will incorporate logistic and LASSO regression, bagging, random forests, XGboost, KNN, Naive Bayes, and discriminate analysis to focus on classification and maximize model predictability on new data. For the regression component, I will address all relevant conditions for use to figure out variable significant. I checked the conditions for use for regression models, of which all were met, mitigating the need for transformations. However, I did need to do some data transformation to make the categorical variables numeric for some of the other statistical models, omitting observations with NA values, and breaking the data set into training and testing set. I then used the regression models to predict the main cause of heart disease. My analysis revealed statistically discernible evidence that BMI is predictive of heart disease status (p−value \< $0.05$). Along with the regression models, I tested accuracy, sensitivity, and specificity on all models to maximize model predictability. Quadratic Discriminate Analysis was the best model with accuracy of $79.98$%, sensitivity of $0.47$%, and specificity of $99.91$%. This study highlights the importance of considering multiple predictors in medical diagnosis and utilizing the best statistic model in research, providing valuable insights for future research and practical applications.
+
+\newpage
+
+# Introduction
+
+## Background
+
+Heart disease is the leading cause of death in the United States, claiming the lives of over 900,000 people each year—that’s roughly one person every 34 seconds, or nearly 2,500 lives per day [@Parade]. Among the many forms of heart disease, one of the most serious and common is a myocardial infarction, more commonly known as a heart attack. A heart attack occurs when blood flow to part of the heart is severely reduced or completely blocked, usually due to a buildup of fat, cholesterol, and other substances in the coronary arteries. This blockage can damage or destroy heart muscle tissue due to a lack of oxygen-rich blood [@Mayo].
+
+There are many risk factors that increase the likelihood of having a heart attack. These include age, sex, genetic predisposition, autoimmune diseases, diabetes, high blood pressure, high cholesterol, obesity, lack of physical activity, smoking, excessive alcohol use, and chronic stress. Men are at a greater risk of heart attacks and tend to experience them earlier in life, with an average onset age of 45 compared to 55 for women[@Mayo]. Genetics also play a significant role—those with a family history of heart disease are more likely to suffer from heart attacks themselves.
+
+People of color face disproportionately high rates of heart attacks, often due to higher rates of hypertension, obesity, and diabetes, as well as reduced access to quality healthcare and nutritious foods [@AHA]. Smoking is another major contributor. Nicotine raises heart rate and blood pressure, increases the likelihood of blood clots, and promotes the buildup of plaque in arteries. Even secondhand smoke can increase the risk of heart disease in non-smokers[@AHA].
+
+Other contributing factors include high blood pressure, which can damage arteries over time and make the heart work harder, leading to thickened heart muscle. Elevated levels of low-density lipoprotein (LDL) cholesterol—commonly referred to as "bad" cholesterol—can narrow arteries. High triglyceride levels, another type of blood fat, also contribute to heart attack risk[@Mayo].
+
+## Data and Reason
+
+The dataset I am using was created by Oktay Ordekci and is available on Kaggle, an online platform that hosts thousands of datasets. It includes a wide range of health indicators and risk factors associated with heart disease. Variables such as age, gender, blood pressure, cholesterol levels, smoking habits, and exercise patterns have been collected to analyze heart disease risk and support health-related research. This dataset can be utilized by healthcare professionals, researchers, and data analysts to examine trends, identify contributing factors, and perform in-depth analyses related to cardiovascular health [@Kaggle].
+
+The dataset contains 10,000 observations and 21 variables. For my research, I will use **heart disease status** as the response variable, which is a categorical variable with two classes: *yes* and *no*. The remaining 20 variables are as follows:
+
+-   **Age** (discrete quantitative – years)
+
+-   **Gender** (categorical – male or female)
+
+-   **Blood pressure** (discrete quantitative – mm Hg)
+
+-   **Cholesterol level** (discrete quantitative – mg/dL)
+
+-   **Exercise habits** (categorical – high, medium, or low)
+
+-   **Smoking** (categorical – yes or no)
+
+-   **Family history of heart disease** (categorical – yes or no)
+
+-   **Diabetes** (categorical – yes or no)
+
+-   **BMI** (continuous quantitative – kg/m²)
+
+-   **High blood pressure** (categorical – yes or no)
+
+-   **Low HDL cholesterol** (categorical – yes or no)
+
+-   **High LDL cholesterol** (categorical – yes or no)
+
+-   **Alcohol consumption** (categorical – high, medium, low, or none)
+
+-   **Stress level** (categorical – high, medium, or low)
+
+-   **Sleep hours** (continuous quantitative – hours)
+
+-   **Sugar consumption** (categorical – high, medium, or low)
+
+-   **Triglyceride level** (discrete quantitative – mg/dL)
+
+-   **Fasting blood sugar** (discrete quantitative – mg/dL)
+
+-   **CRP level** (continuous quantitative – C-reactive protein, mg/L)
+
+-   **Homocysteine level** (continuous quantitative – µmol/L)
+
+I am interested in this dataset because it offers a comprehensive view of the various risk factors linked to heart disease. By analyzing these variables, my goal is to identify which risk factors have the most significant impact on heart health. Understanding these relationships could help inform preventive strategies and contribute to broader health research. In my analysis, I aim to determine the most influential predictors while maximizing the accuracy of heart disease prediction.
+
+\newpage
+
+# EDA
+
+## Data Manipulation
+
+Before diving into an exploration of the data, I must first prepare the data for the later tests. The original data set contains $10,000$ observations and $21$ different variables. Out of the $21$ variables, $12$ of them are categorical variables. We are going to use Heart.Disease.Status variable as the response variable. For all the categorical variables, we will use it as a factor of the response variable, along with the rest of the variables. We will mutate them and give them a numeric value. For the gender variable, male will be $0$ and female will be $1$. For the categorical variables with yes and no as a response, yes is $0$ and no is $1$. For categorical variables with high, medium, and low as a response, high is $0$, medium is $1$, low is $2$, and none is $3$. I also removed any observations that contained missing values, leaving $9,500$ observations.
+
+I also split this final data set into training and testing data, with $80$% of the data going to training and $20$% going to testing. There are $7,600$ observations in the training set and $1,900$ in the testing set. This process is crucial to creating predictive models, as it allows one to test the model’s accuracy on data it hasn’t seen before. Overall, I hope that this will allow me to find a model with low bias on the training data and low variability on the testing data without loss of accuracy.
+
+```{r}
+#| echo: false
+#| results: "hide"
+#| message: false
+#| warning: false
+
+library(tidyverse)
+library(patchwork)
+library(xtable)
+library(GGally)
+library(binom)
+library(ggplot2)
+library(lubridate)
+library(qqplotr)
+library(rms)
+library(dplyr)
+library(car)
+library(MASS)
+library(Stat2Data)
+library(caret)
+library(knitr)
+library(tidyverse)
+library(caTools)
+library(kknn)
+library(pROC)
+library(klaR)
+library(statmod)
+library(ISLR)
+library(glmnet)
+library(plotmo)
+library(rpart)  
+library(rpart.plot) 
+library(caTools)
+library(Stat2Data) # data set
+library(randomForest) # for random forests
+library(ipred) # for bagging
+library(caTools) # for splitting data sets
+library(caret) # for confusion matrix
+library(adabag)
+library(xgboost)
+
+data <- read.csv("heart_disease.csv")
+#data multiplication
+data<-data %>% mutate (Gender = as.factor(case_when(Gender == "Male" ~ 0,
+                                      Gender == "Female" ~ 1)), 
+                       Exercise.Habits = as.factor(case_when(Exercise.Habits == "High" ~ 0,
+                                      Exercise.Habits == "Medium" ~ 1,
+                                      Exercise.Habits == "Low" ~ 2)),
+                       Smoking = as.factor(case_when(Smoking == "Yes" ~ 0,
+                                      Smoking == "No" ~ 1)),
+                       Family.Heart.Disease = as.factor(case_when(Family.Heart.Disease == "Yes" ~ 0,
+                                      Family.Heart.Disease == "No" ~ 1)),
+                       Diabetes = as.factor(case_when(Diabetes == "Yes" ~ 0,
+                                      Diabetes == "No" ~ 1)),
+                       High.Blood.Pressure = as.factor(case_when(High.Blood.Pressure == "Yes" ~ 0,
+                                      High.Blood.Pressure == "No" ~ 1)),
+                       Low.HDL.Cholesterol = as.factor(case_when(Low.HDL.Cholesterol == "Yes" ~ 0,
+                                      Low.HDL.Cholesterol == "No" ~ 1)),
+                       High.LDL.Cholesterol = as.factor(case_when(High.LDL.Cholesterol == "Yes" ~ 0,
+                                      High.LDL.Cholesterol == "No" ~ 1)),
+                       Alcohol.Consumption = as.factor(case_when(Alcohol.Consumption == "High" ~ 0,
+                                      Alcohol.Consumption== "Medium" ~ 1,
+                                      Alcohol.Consumption == "Low"~ 2,
+                                      Alcohol.Consumption == "None"~ 3)),
+                       Stress.Level = as.factor(case_when(Stress.Level == "High" ~ 0,
+                                      Stress.Level == "Medium" ~ 1,
+                                      Stress.Level == "Low"~ 2)),
+                       Sugar.Consumption = as.factor(case_when(Sugar.Consumption == "High" ~ 0,
+                                      Sugar.Consumption == "Medium" ~ 1,
+                                      Sugar.Consumption == "Low" ~ 2)),
+                       Heart.Disease.Status = as.factor(case_when(Heart.Disease.Status == "Yes" ~ 0,
+                                      Heart.Disease.Status == "No" ~ 1)))
+#omit data
+data <- na.omit(data)
+#new dimension
+glimpse(data)
+### creating training and testing sets
+set.seed(40)
+split <- sample.split(data$Heart.Disease.Status, SplitRatio = 0.80)
+train.set <- subset(data, split == TRUE)
+test.set <- subset(data, split == FALSE)
+train.set %>% dim()
+test.set %>% dim()
+```
+
+## Response
+
+I will first quickly investigate the response variable: whether the date resulted in heart disease or not. As it is just a dichotomous response, with results being either “Yes” ($0$) to indicate heart disease or “No” ($1$) to indicate no heart disease, a bar graph is shown in Figure $1$ of the observations. Out of the $9,500$ observations, only $1,903$ resulted in heart disease, meaning about $80$% the sample resulted in not having a heart disease.
+
+```{r}
+#| label: fig-1
+#| echo: false
+#| results: "hide"
+#| message: false
+#| warning: false
+#| fig-width: 9
+#| fig-height: 6
+#| fig-cap: "Bar Plot of Heart Disease Status."
+#| fig-align: "center"
+
+fig.1 <- ggplot(data, aes(x = Heart.Disease.Status, fill = as.factor(Heart.Disease.Status))) +
+  geom_bar() +
+  scale_fill_manual(values = c("0" = "red", "1" = "blue")) + scale_y_continuous(
+    breaks = seq(0, 8000, by = 1000),  # Custom breaks
+    ) +
+  labs(
+    title = "Bar Graph of Heart Disease Status",
+    x = "Response",
+    y = "Number of People",
+    fill = "Heart Disease Status"
+  )
+
+fig.1
+
+```
+
+\newpage
+
+## Predictors
+
+I will next explore the predictor variables and see how evenly distributed it is to see how it will affect the data.
+
+```{r}
+#| label: fig-2
+#| echo: false
+#| results: "hide"
+#| message: false
+#| warning: false
+#| fig-width: 8.5
+#| fig-height: 4
+#| fig-align: "center"
+#| fig-cap: "Graphs for Age, Gender, Blood Pressure, Cholesterol Level."
+
+fig.2<-ggplot(data, aes(x = Age)) +
+  geom_histogram(binwidth = 1, fill = "lightblue", color = "black") +
+  labs(title = "Histogram of Age", x = "Age", y = "Number of People") +
+  theme_classic()
+
+fig.3 <- ggplot(data, aes(x = Gender, fill = as.factor(Gender))) +
+  geom_bar() +
+  scale_fill_manual(values = c("0" = "red", "1" = "blue")) + scale_y_continuous(
+    breaks = seq(0, 5000, by = 1000),  # Custom breaks
+    ) +
+  labs(
+    title = "Bar Graph of Gender",
+    x = "Gender",
+    y = "Number of People",
+    fill = "Gender"
+  )
+
+fig.4<-ggplot(data, aes(x = Blood.Pressure)) +
+  geom_histogram(binwidth = 1, fill = "lightblue", color = "black") +
+  labs(title = "Histogram of Blood Pressure", x = "Blood Pressure", y = "Number of People") +
+  theme_classic()
+
+fig.5 <-ggplot(data, aes(x = Cholesterol.Level)) +
+  geom_histogram(binwidth = 1, fill = "lightblue", color = "black") +
+  labs(title = "Histogram of Cholesterol Level", x = "Cholesterol Level", y = "Number of People") +
+  theme_classic()
+
+fig.6 <- ggplot(data, aes(x = Exercise.Habits, fill = as.factor(Exercise.Habits))) +
+  geom_bar() +
+  scale_fill_manual(values = c("0" = "red", "1" = "blue", "2"= "green")) + scale_y_continuous(
+    breaks = seq(0, 6000, by = 1000),  # Custom breaks
+    ) +
+  labs(
+    title = "Bar Graph of Exercise Habits",
+    x = "Levels of Exercise",
+    y = "Number of People",
+    fill = "Level of Exercise"
+  )
+
+fig.7 <- ggplot(data, aes(x = Smoking, fill = as.factor(Smoking))) +
+  geom_bar() +
+  scale_fill_manual(values = c("0" = "red", "1" = "blue")) + scale_y_continuous(
+    breaks = seq(0, 6000, by = 1000),  # Custom breaks
+    ) +
+  labs(
+    title = "Bar Graph of Smoking",
+    x = "Response",
+    y = "Number of People",
+    fill = "Smoking"
+  )
+
+fig.8 <- ggplot(data, aes(x = Family.Heart.Disease, fill = as.factor(Family.Heart.Disease))) +
+  geom_bar() +
+  scale_fill_manual(values = c("0" = "red", "1" = "blue")) + scale_y_continuous(
+    breaks = seq(0, 6000, by = 1000),  # Custom breaks
+    ) +
+  labs(
+    title = "Bar Graph of Family Heart Disease",
+    x = "Response",
+    y = "Number of People",
+    fill = "Family Heart Disease"
+  )
+
+fig.9 <- ggplot(data, aes(x = Diabetes, fill = as.factor(Diabetes))) +
+  geom_bar() +
+  scale_fill_manual(values = c("0" = "red", "1" = "blue")) + scale_y_continuous(
+    breaks = seq(0, 6000, by = 1000),  # Custom breaks
+    ) +
+  labs(
+    title = "Bar Graph of Diabetes",
+    x = "Response",
+    y = "Number of People",
+    fill = "Diabetes"
+  )
+
+fig.10 <-ggplot(data, aes(x = BMI)) +
+  geom_histogram(binwidth = 1, fill = "lightblue", color = "black") +
+  labs(title = "Histogram of BMI", x = "BMI", y = "Number of People") +
+  theme_classic()
+
+fig.11 <- ggplot(data, aes(x = High.Blood.Pressure, fill = as.factor(High.Blood.Pressure))) +
+  geom_bar() +
+  scale_fill_manual(values = c("0" = "red", "1" = "blue")) + scale_y_continuous(
+    breaks = seq(0, 6000, by = 1000),  # Custom breaks
+    ) +
+  labs(
+    title = "Bar Graph of High Blood Pressure",
+    x = "Response",
+    y = "Number of People",
+    fill = "High Blood Pressure"
+  )
+
+
+fig.12 <- ggplot(data, aes(x = Low.HDL.Cholesterol, fill = as.factor(Low.HDL.Cholesterol))) +
+  geom_bar() +
+  scale_fill_manual(values = c("0" = "red", "1" = "blue")) + scale_y_continuous(
+    breaks = seq(0, 6000, by = 1000),  # Custom breaks
+    ) +
+  labs(
+    title = "Bar Graph of Low HDL Cholesterol",
+    x = "Response",
+    y = "Number of People",
+    fill = "Low HDL Cholesterol"
+  )
+
+
+fig.13 <- ggplot(data, aes(x = High.LDL.Cholesterol, fill = as.factor(High.LDL.Cholesterol))) +
+  geom_bar() +
+  scale_fill_manual(values = c("0" = "red", "1" = "blue")) + scale_y_continuous(
+    breaks = seq(0, 6000, by = 1000),  # Custom breaks
+    ) +
+  labs(
+    title = "Bar Graph of High LDL Cholesterol",
+    x = "Response",
+    y = "Number of People",
+    fill = "High LDL Cholesterol"
+  )
+
+
+fig.14 <- ggplot(data, aes(x = Alcohol.Consumption, fill = as.factor(Alcohol.Consumption))) +
+  geom_bar() +
+  scale_fill_manual(values = c("0" = "red", "1" = "blue", "2"="green", "3"= "purple")) + 
+  scale_y_continuous(
+    breaks = seq(0, 6000, by = 1000),  # Custom breaks
+    ) +
+  labs(
+    title = "Bar Graph of Alcohol Consumption",
+    x = "Levels of Alcohol Consumption",
+    y = "Number of People",
+    fill = "Alcohol Consumption"
+  )
+
+fig.15 <- ggplot(data, aes(x = Stress.Level, fill = as.factor(Stress.Level))) +
+  geom_bar() +
+  scale_fill_manual(values = c("0" = "red", "1" = "blue")) + scale_y_continuous(
+    breaks = seq(0, 6000, by = 1000),  # Custom breaks
+    ) +
+  labs(
+    title = "Bar Graph of Stress Level",
+    x = "Stress Level",
+    y = "Number of People",
+    fill = "Stress Level"
+  )
+fig.16 <-ggplot(data, aes(x = Sleep.Hours)) +
+  geom_histogram(binwidth = 1, fill = "lightblue", color = "black") +
+  labs(title = "Histogram of Hours Slept", x = "Hours of Sleep", y = "Number of People") +
+  theme_classic()
+
+fig.17 <- ggplot(data, aes(x = Sugar.Consumption, fill = as.factor(Sugar.Consumption))) +
+  geom_bar() +
+  scale_fill_manual(values = c("0" = "red", "1" = "blue", "2"= "green")) + scale_y_continuous(
+    breaks = seq(0, 6000, by = 1000),  # Custom breaks
+    ) +
+  labs(
+    title = "Bar Graph of Sugar Consumption Levels",
+    x = "Levels of Sugar Consumption",
+    y = "Number of People",
+    fill = "Sugar Consumption"
+  )
+
+fig.18 <-ggplot(data, aes(x = Triglyceride.Level)) +
+  geom_histogram(binwidth = 1, fill = "lightblue", color = "black") +
+  labs(title = "Histogram of Triglyceride Level", x = "Triglyceride Levels", y = "Number of People") +
+  theme_classic()
+
+fig.19 <-ggplot(data, aes(x = Fasting.Blood.Sugar)) +
+  geom_histogram(binwidth = 1, fill = "lightblue", color = "black") +
+  labs(title = "Histogram of Fasting Blood Sugar Levels", x = "Fasting Blood Sugar Levels", y = "Number of People") +
+  theme_classic()
+
+fig.20 <-ggplot(data, aes(x = CRP.Level)) +
+  geom_histogram(binwidth = 1, fill = "lightblue", color = "black") +
+  labs(title = "Histogram of CRP Level", x = "CRP Levels", y = "Number of People") +
+  theme_classic()
+ 
+fig.21 <-ggplot(data, aes(x = Homocysteine.Level)) +
+  geom_histogram(binwidth = 1, fill = "lightblue", color = "black") +
+  labs(title = "Histogram of Homocysteine Level", x = "Homocysteine Levels", y = "Number of People") +
+  theme_classic()
+ fig.2+fig.3+fig.4 + fig.5
+```
+
+As seen in @fig-2, all the predictors are evenly distributive between Age, Gender, Blood Pressure, and Cholesterol Level. The histograms are approximately uniform and the bar graph is about even.
+
+```{r}
+#| label: fig-3
+#| echo: false
+#| results: "hide"
+#| message: false
+#| warning: false
+#| fig-width: 8.5
+#| fig-height: 4
+#| fig-align: "center"
+#| fig.pos: "H"
+#| fig-cap: "Graphs of Exercise Habits, Smoking, Family Heart Disease, Diabetes."
+fig.6+fig.7+fig.8 + fig.9
+```
+
+As seen in @fig-3, all the predictors are evenly distributive between Exercise Habits, Smoking, Family Heart Disease, and Diabetes. The bar graphs is about even.
+
+```{r}
+#| label: fig-4
+#| echo: false
+#| results: "hide"
+#| message: false
+#| warning: false
+#| fig-width: 8.5
+#| fig-height: 4
+#| fig-align: "center"
+#| fig.pos: "H"
+#| fig-cap: "Graphs of BMI, High Blood Pressure, Low HDL Cholesterol, High LDL Cholesterol."
+
+fig.10+fig.11+fig.12 + fig.13
+
+```
+
+As seen in @fig-4, all the predictors are evenly distributive between BMI, High Blood Pressure, Low HDL Cholesterol, and High LDL Cholesterol. The bar graphs is about even and the histogram is around uniform.
+
+```{r}
+#| label: fig-5
+#| echo: false
+#| results: "hide"
+#| message: false
+#| warning: false
+#| fig-width: 8.5
+#| fig-height: 4
+#| fig-align: "center"
+#| fig.pos: "H"
+#| fig-cap: "Graphs for Alchol Consumption, Stress Level, Hours Slept, Sugar Consumption."
+
+fig.14+fig.15+fig.16 + fig.17
+```
+
+As seen in @fig-5, all the predictors are evenly distributive between Alcohol Consumption, Stress Levels, Hours Slept, and Sugar Consumption. The bar graphs is about even and the histogram is around uniform.
+
+```{r}
+#| label: fig-6
+#| echo: false
+#| message: false
+#| warning: false
+#| results: "hide"
+#| fig-align: "center"
+#| fig.pos: "H"
+#| fig-cap: Graphs for Triglyceride Levels, Fasting Blood Sugar Level, CRP Levels, and Homocysteine Level.
+#| fig-height: 4
+#| fig-width: 8.5
+
+
+fig.18+fig.19+fig.20 + fig.21
+
+```
+
+As seen in @fig-6, all the predictors are evenly distributive between Triglyceride, Fasting Blood Sugar, CPR, and Homocysteine Levels. The histograms is around uniform.
+
+\newpage
+
+# Logistic Regression
+
+## Assessing Assumptions
+
+Before I can create a logistic regression model to predict for heart disease, assumptions must first be assessed. The response variable is dichotomous, with an outcome of either “Yes”, indicating heart disease, or “No”, indicating no heart disease. The data did not specify where the responses came from. Therefore, it is difficult to tell what population the sample could be representative of. Additionally, there is no indication of how the samples were collected, meaning I cannot be sure that these are all independent observations. If the results were taken randomly from some individuals that participated, then the observations would be. However, I will assume that the observations are independent as heart disease is not contagious, so one person having it doesn't affect the sample by spreading it to others. Also the risk factors are based on genetics and the person lifestyle.
+
+## LASSO
+
+Lasso Regression is a valuable tool for handling high-dimensional data and performing automatic feature selection. By introducing a penalty term, it enhances model simplicity and interpretability while preventing overfitting. It selects important features by shrinking less significant ones to zero.
+
+```{r}
+#| echo: false
+#| results: "hide"
+#| message: false
+#| warning: false
+### create the data matrix, minus the intercept column
+x.data.matrix <- model.matrix(as.numeric(Heart.Disease.Status) ~ ., data = data)[,-1]
+
+### create the response vector
+y <- as.numeric(data$Heart.Disease.Status)
+
+### we first must choose the optimal lambda value
+### create a grid of potential candidate lambda values
+### from e^(-8) to e^8
+lambda.grid <- exp(seq(-8,8,by=.01))
+
+### fit the LASSO regression model
+### alpha = 1 tells glmnet to fit a LASSO regression model
+### the columns of the x.data.matrix object will automatically be standardized
+### ensures all features contribute equally to the penalty term
+lasso.fit <- glmnet(x = x.data.matrix, y = y, alpha = 1, lambda = lambda.grid)
+```
+
+```{r lasso-plot, fig.align='center', fig.cap="Comparing log lambda to the LASSO regression coefficients."}
+#| echo: false
+#| message: false
+#| warning: false
+#| fig-height: 4
+#| fig-pos: H
+#| fig-width: 6
+#| results: hide
+#| label: fig-7
+
+plot_glmnet(lasso.fit, label = 4, xvar = "lambda")
+
+```
+
+According to @fig-7, the biggest factors are alcohol consumption, gender, and stress levels.
+
+```{r}
+#| echo: false
+#| results: "hide"
+#| message: false
+#| warning: false
+### cross-validation to choose the best lambda
+### set nfolds = nrow(hit.data) to do leave-one-out CV
+lasso.cv <- cv.glmnet(x = x.data.matrix, y = y, alpha = 1, lambda = lambda.grid,
+                      nfolds = nrow(data),
+                      type.measure = "mse")
+
+### best lambda with the smallest CV MSE
+lasso.cv$lambda.min
+
+### create a data frame of log lambda versus test MSE
+df.lasso.cv <- data.frame(log.lambda = log(lasso.cv$lambda), mse = lasso.cv$cvm)
+
+df.lasso.cv %>% filter(mse == min(mse))
+
+### plot log lambda versus test MSE from cross-validation
+fig.22 <- df.lasso.cv %>% 
+  ggplot(aes(x = log.lambda, y = mse)) +
+  geom_line(color = "blue", size = 1) +
+  geom_vline(xintercept = log(lasso.cv$lambda.min), 
+             linetype = "dashed", 
+             color = "red", 
+             size = 1) +  
+  labs(x = "Log Lambda", y = "Test MSE") +
+  theme_bw()
+
+### lasso.cv coefficients with the optimal lambda
+coef(lasso.fit, s = lasso.cv$lambda.min)
+
+### create a data frame to compare the OLS, RR, and LASSO estimates
+data.frame(LASSO=coef(lasso.fit, s = lasso.cv$lambda.min)[,1]) 
+```
+
+```{r}
+#| label: fig-8
+#| echo: false
+#| message: false
+#| warning: false
+#| results: "hide"
+#| fig-align: "center"
+#| fig.pos: "H"
+#| fig-cap: Cross-validation curve for LASSO regression; log lambda versus test MSE using LOOCV. The red dashed line represents the optimal log lambda value.
+#| fig-height: 4
+#| fig-width: 6
+
+
+fig.22
+
+```
+
+According to @fig-8, the data is center around log lambda of $-5.62$ with the smallest mse of $0.1601593$.
+
+\begin{table}[H]
+\centering
+\caption{Lasso Regression Coefficients}
+\begin{tabular}{ll}
+\hline \hline
+\textbf{Variable} & \textbf{Coefficient} \\
+\hline
+(Intercept)            & 1.8002688681 \\
+Age                    & --- \\
+Gender1                & -0.0058844390 \\
+Blood Pressure         & 0.0001520150 \\
+Cholesterol Level      & --- \\
+Exercise Habits1       & --- \\
+Exercise Habits2       & --- \\
+Smoking1               & --- \\
+Family Heart Disease1  & --- \\
+Diabetes1              & --- \\
+BMI                    & -0.0007305023 \\
+High Blood Pressure1   & --- \\
+Low HDL Cholesterol1   & --- \\
+High LDL Cholesterol1  & --- \\
+Alcohol Consumption1   & --- \\
+Alcohol Consumption2   & --- \\
+Alcohol Consumption3   & 0.0024509254 \\
+Stress Level1          & -0.0101011258 \\
+Stress Level2          & 0.0108574110 \\
+Sleep Hours            & --- \\
+Sugar Consumption1     & --- \\
+Sugar Consumption2     & --- \\
+Triglyceride Level     & --- \\
+Fasting Blood Sugar    & --- \\
+CRP Level              & --- \\
+Homocysteine Level     & --- \\
+\hline \hline
+\end{tabular}
+\end{table}
+
+As shown in Table $1$, most coefficients are zero. In the case of LASSO Regression, the variables that go to zero is the least significant features in predicting heart disease. Besides the intercept (indicating heart disease), there are $6$ significant predictors: gender $1$, blood pressure, BMI, Alcohol Consumption $3$, and Stress Level $1$ and $2$.
+
+```{r}
+#| echo: false
+#| results: "hide"
+#| message: false
+#| warning: false
+# Predict probabilities using the fitted model
+predicted_probs <- predict(lasso.fit, s = lasso.cv$lambda.min, newx = x.data.matrix, type = "response")
+
+# Convert probabilities to predicted class labels (0 or 1)
+predicted_class <- ifelse(predicted_probs > 0.5, 1, 0)
+
+# Create a confusion matrix
+conf_matrix <- table(Predicted = predicted_class, Actual = y)
+
+print(conf_matrix) 
+
+```
+
+\begin{table}[H]
+\centering
+\begin{tabular}{r|rr}
+Prediction & 0 & 1  \\
+\hline 
+0 & 0 & 0 \\
+1  & 1903 & 7597   \\
+\end{tabular}
+\caption{Confusion Matrix For LASSO Regression}
+\end{table}
+
+Table $2$ is a confusion matrix, to predict accuracy of LASSO Regression. The accuracy is $79.9684$ %, with sensitivity of $0$ and specificity of $1$.
+
+## Full Predictor Models
+
+```{r}
+#| echo: false
+#| results: "hide"
+#| message: false
+#| warning: false
+
+# Fit the logistic regression model
+logistic <- glm(as.factor(Heart.Disease.Status) ~ ., data = data, family = binomial(link = "logit"))
+
+# Display the summary of the model
+summary(logistic)
+
+### ask for a more concise model summary
+round(summary(logistic)$coefficients,4)
+
+vif(logistic)
+### ask for the predicted log odds
+predicted.log.odds <- predict(logistic)
+predicted.log.odds %>% head()
+
+### ask for the predicted probabilities
+predicted.probs <- predict(logistic, type = "response")
+
+### get ready to create the RQR plot
+rqr.logistic.model <- qresid(logistic)
+df.resids <- data.frame(data, 
+                             predicted.probs = predicted.probs, 
+                             rqr = rqr.logistic.model)
+df.resids %>% head()
+
+fig.23 <- df.resids %>% 
+  ggplot(aes(x = predicted.probs, y = rqr)) +
+  geom_point()+
+  ylab("Randomized Quantile Residuals")+
+  xlab("Predicted Probabilities")+
+  theme_bw()
+
+
+### calculate predictions as probabilities
+### determine the predicted classes (yes or no) using 0.50 as the cutoff 
+### extract the true classes 
+predicted.probs <- predict(logistic, type = "response")
+predicted.class <- ifelse(predicted.probs>0.50, 1, 0)
+truevals <- data$Heart.Disease.Status
+
+### confusion table 
+(tab <- table(predicted.class, truevals))
+
+### number of true positives
+(ntruePos<-length(which(predicted.class==truevals  & truevals==1)))
+
+### number of false positives
+(nfalsePos<-length(which(predicted.class!=truevals & truevals==0)))
+
+### number of true negatives
+(ntrueNeg<-length(which(predicted.class==truevals  & truevals==0)))
+
+### number of false negatives
+(nfalseNeg<-length(which(predicted.class!=truevals & truevals==1)))
+
+### calculate accuracy, sensitivity, and specificity
+(ntrueNeg+ntruePos)/nrow(data)        # accuracy
+ntruePos/(ntruePos+nfalseNeg)            # sensitivity
+ntrueNeg/(ntrueNeg+nfalsePos)            # specificity
+
+### caret package for confusion matrix and model metrics
+
+confusionMatrix(as.factor(predicted.class), as.factor(data$Heart.Disease.Status))
+
+roc.data <- roc(data$Heart.Disease.Status, c(predicted.probs))
+
+fig.24<- ggroc(roc.data) + 
+  theme_bw()+
+  xlab("Specificity")+
+  ylab("Sensitivity")+
+  geom_abline(slope=1, intercept=1,
+              linetype="dotted", color="red")+
+  ggtitle("ROC Curve",
+          paste("AUC = ", round(roc.data$auc,4), sep=""))
+```
+
+The data seem to not be correlated, but I will further check this later by looking at the variance inflation factors of the logistic regression models. Similarly, linearity will be assessed later using the Box-Tidwell test. The first model I will fit in order to predict for matches is a logistic regression model using all the predictors. I will first look at multicollinearity through the VIF values.
+
+\begin{table}[H]
+\centering
+\caption{Variance Inflation Factors of the predictors in the full predictor logistic regression model.}
+\begin{tabular}{ll}
+\hline \hline
+\textbf{Variable} & \textbf{VIF} \\
+\hline
+Age                    & 1.0026 \\
+Gender                & 1.0025 \\
+Blood Pressure         & 1.0019 \\
+Cholesterol Level      & 1.0026\\
+Exercise Habits       & 1.0032 \\
+Smoking              & 1.0021 \\
+Family Heart Disease  & 1.0016 \\
+Diabetes         & 1.0023 \\
+BMI                    & 1.0028 \\
+High Blood Pressure   & 1.0023\\
+Low HDL Cholesterol   & 1.0021 \\
+High LDL Cholesterol  & 1.0028 \\
+Alcohol Consumption   & 1.0081 \\
+Stress Level         & 1.0049\\
+Sleep Hours            & 1.0022 \\
+Sugar Consumption     & 1.0055 \\
+Triglyceride Level     & 1.0017 \\
+Fasting Blood Sugar    & 1.0015 \\
+CRP Level              & 1.0028\\
+Homocysteine Level     & 1.0023\\
+\hline \hline
+\end{tabular}
+\end{table}
+
+As seen in Table $3$, there is no concern of multicollinearity as all of the features have a VIF around $1$. Finally, I will perform the Box-Tidwell test to assess linearity through logistic regression. As you can see with the RQR plot below, there is no need for transformations of generalized linear model as there is no pattern. The plot is just a blob.
+
+```{r}
+#| label: fig-9
+#| echo: false
+#| message: false
+#| warning: false
+#| results: "hide"
+#| fig-align: "center"
+#| fig.pos: "H"
+#| fig-cap: A plot of the predicted probabilites versus the randomized quantile residuals for Logistic Regression.
+#| fig-height: 4
+#| fig-width: 6
+
+fig.23
+
+```
+
+Now, that we have test all the assumptions for logistic regression and narrow down the number of significant predictors with the LASSO Regression, now it is time to use logistic regression to find the number one predictor of heart disease. The table below will show that.
+
+\begin{table}[H]
+\centering
+\caption{Coefficients of logistic regression model.}
+\begin{tabular}{ll}
+\hline \hline
+\textbf{Variable} & \textbf{P-value} \\
+\hline
+(Intercept) & 0.0018 \\
+Age                    & 0.6426 \\
+Gender1                & 0.1020 \\
+Blood Pressure         & 0.1161 \\
+Cholesterol Level      & 0.8716\\
+Exercise Habits1       & 0.6283 \\
+Exercise Habits2       & 0.8237 \\
+Smoking1              & 0.5419 \\
+Family Heart Disease1  & 0.4269 \\
+Diabetes1         & 0.6685 \\
+BMI                    & 0.0489 \\
+High Blood Pressure1   & 0.9913\\
+Low HDL Cholesterol1   & 0.7327 \\
+High LDL Cholesterol1  & 0.3875\\
+Alcohol Consumption1   & 0.3115 \\
+Alcohol Consumption2   & 0.5607 \\
+Alcohol Consumption3   & 0.1407 \\
+Stress Level1         & 0.1496\\
+Stress Level2         & 0.1062\\
+Sleep Hours            & 0.8567 \\
+Sugar Consumption1     & 0.2376 \\
+Sugar Consumption2     & 0.2439 \\
+Triglyceride Level     & 0.9948 \\
+Fasting Blood Sugar    & 0.6357 \\
+CRP Level              & 0.5304\\
+Homocysteine Level     & 0.4205\\
+\hline \hline
+\end{tabular}
+\end{table}
+
+As seen in Table $4$, the one significant predictor of heart disease is BMI. That is because it is the only feature with a p-value less than $0.05$, besides the intercept. Next, I will make a confusion matrix to calculate accuracy, specificity, and sensitivity.
+
+\begin{table}[H]
+\centering
+\begin{tabular}{r|rr}
+Prediction & 0 & 1  \\
+\hline 
+0 & 0 & 0 \\
+1  & 1903 & 7597   \\
+\end{tabular}
+\caption{Confusion Matrix For Logistic Regression}
+\end{table}
+
+Table $5$ is a confusion matrix to predict accuracy of Logistic Regression. The accuracy is $79.9684$ %, with sensitivity of $0$ and specificity of $1$. With specificity and sensitivity not being so good, we get the figure below.
+
+\newpage
+
+# Classification Trees
+
+## Base Tree
+
+```{r}
+#| echo: false
+#| results: "hide"
+#| message: false
+#| warning: false
+
+### fit a decision tree on the training set
+dt.train <- rpart(Heart.Disease.Status ~ ., data = train.set)
+
+# rpart.plot(dt.train)
+
+### make predictions on the testing set
+dt.preds <- predict(dt.train, newdata = test.set, type = "class")
+dt.preds %>% head()
+
+### compare predictions to actual values
+table(dt.preds, test.set$Heart.Disease.Status)
+### ask for the confusion matrix
+
+confusionMatrix(dt.preds, test.set$Heart.Disease.Status, positive = "0")
+
+```
+
+The next method I will explore is the dichotomous classification tree. I decided to first create a base tree just using all predictors, but fitting it on the training set to make predictions on the testing set. However, the base tree ended up being just the root node. In other words, the base classification tree always predicted for an outcome of no heart disease, similar to the logistic regression model and the intercept model after performing LASSO Regression. Therefore, confusion matrices would again be similar to that in Logistic Regression, with the same specificity of $1$ and sensitivity of $0$, but slightly lower accuracy of $79.95$ , as seen below in Table $6$. As this method does not perform any better than previous ones, I will move on to other tree-based algorithms that could help improve the predictability of the data.
+
+\begin{table}[H]
+\centering
+\begin{tabular}{r|rr}
+Prediction & 0 & 1  \\
+\hline 
+0 & 0 & 0 \\
+1  & 381 & 1519   \\
+\end{tabular}
+\caption{Confusion Matrix For Decision Tree}
+\end{table}
+
+## Bagging
+
+I next decided to perform bagging on the classification tree. While this algorithm greatly decreases interpretability by combining a large number of trees together and taking the outcome with the majority of votes, it usually reduces the variabilityof individual models, making the overall model more robust, improving reliability. It also avoids overfitting as the process of creating diverse subsets of the data ensures that each model is trained on different parts of the dataset. The final predictions are aggregated through methods like majority voting for classification or averaging for regression, which enhances overall performance.
+
+```{r}
+#| echo: false
+#| results: "hide"
+#| message: false
+#| warning: false
+# Ensure response variable is a factor
+train.set$Heart.Disease.Status <- as.factor(train.set$Heart.Disease.Status)
+test.set$Heart.Disease.Status <- as.factor(test.set$Heart.Disease.Status)
+
+# Fit bagging model with 200 bootstraps
+bag <- ipred::bagging(Heart.Disease.Status ~ ., data = train.set)
+
+# Predict on test set (no need for type="class" for classification in ipred)
+bag.preds <- predict(bag, newdata = test.set)
+
+# Evaluate model with confusion matrix
+conf_matrix <- confusionMatrix(bag.preds, test.set$Heart.Disease.Status)
+print(conf_matrix)
+```
+
+\begin{table}[H]
+\centering
+\begin{tabular}{r|rr}
+Prediction & 0 & 1  \\
+\hline 
+0 & 5 & 23 \\
+1  & 376 & 1496  \\
+\end{tabular}
+\caption{Confusion Matrix For Bagging}
+\end{table}
+
+As seen in Table $7$, the confusion matrix has an accuracy of $79.00$%, specificity of $98.49$%, and sensitvitiy of $1.31$ %.
+
+## Random Forest
+
+Random Forest creates an ensemble of multiple decision trees, where each tree is trained on a random subset of the data and a random subset of features. This diversity among the trees helps to reduce overfitting and improve the overall performance of the model. Random Forests are versatile and can be used for both classification and regression tasks.
+
+```{r}
+#| echo: false
+#| results: "hide"
+#| message: false
+#| warning: false
+### apply random forests to decision trees using training data
+rf <- randomForest(Heart.Disease.Status ~ ., ntree = 200, mtry = 3, data = train.set)
+rf
+
+### predictions
+rf.preds <- predict(rf, newdata = test.set, type = "class")
+
+### confusion matrix
+rf.matrix <- confusionMatrix(rf.preds, test.set$Heart.Disease.Status, positive = "0")
+rf.matrix$table
+
+round(rf.matrix$overall, 4)
+```
+
+\begin{table}[H]
+\centering
+\begin{tabular}{r|rr}
+Prediction & 0 & 1  \\
+\hline 
+0 & 0 & 0 \\
+1  & 381 & 1519   \\
+\end{tabular}
+\caption{Confusion Matrix For Random Forest}
+\end{table}
+
+Based on Table $8$, the accuracy of Random Forest is $97.95$ % with specificity of $1$ and sensitivity of $0$.
+
+## Boosting
+
+XGBoost is an extreme gradient boosting algorithm, incorporating regularization techniques to
+prevent overfitting and improve performance. It is known for its speed and efficiency, handling both numerical and categorical features effectively. XGBoost uses a regularized objective function, which includes both the loss function and a regularization term. I used it instead of AdaBoost because it is faster and more convenient.
+
+```{r}
+#| echo: false
+#| results: "hide"
+#| message: false
+#| warning: false
+# Convert target to binary (if it's a factor or string)
+train.label <- as.numeric(train.set$Heart.Disease.Status) - 1
+test.label <- as.numeric(test.set$Heart.Disease.Status) - 1
+
+# Remove the target column from features and ensure all features are numeric
+train.data <- train.set[, setdiff(names(train.set), "Heart.Disease.Status")]
+test.data <- test.set[, setdiff(names(test.set), "Heart.Disease.Status")]
+
+# Convert all columns to numeric (use as.numeric() for each column)
+train.data[] <- lapply(train.data, as.numeric)
+test.data[] <- lapply(test.data, as.numeric)
+
+# Convert the data frames to matrices (as expected by XGBoost)
+train.data <- as.matrix(train.data)
+test.data <- as.matrix(test.data)
+
+# Train XGBoost model
+xgb.model <- xgboost(data = train.data, 
+                     label = train.label, 
+                     objective = "binary:logistic", 
+                     nrounds = 100,
+                     max_depth = 3,
+                     eta = 0.1,
+                     verbose = 0)
+
+# Predict probabilities
+xgb.preds.prob <- predict(xgb.model, test.data)
+
+# Convert to class labels (0 or 1)
+xgb.preds <- ifelse(xgb.preds.prob > 0.5, 1, 0)
+
+# Confusion matrix
+conf.mat <- table(Predicted = xgb.preds, Actual = test.label)
+print(conf.mat)
+```
+
+\begin{table}[H]
+\centering
+\begin{tabular}{r|rr}
+Prediction & 0 & 1  \\
+\hline 
+0 & 0 & 0 \\
+1  & 381 & 1519   \\
+\end{tabular}
+\caption{Confusion Matrix For Boosting}
+\end{table}
+
+Based on Table $9$, the accuracy of XGBoosting is $97.95$ % with specificity of $1$ and sensitivity of $0$.
+
+\newpage
+
+# Other Prediction Techniques
+
+## K-Nearest Neighbors
+
+KNN identifies the K-nearest neighbors to a given data point using a distance metric, making predictions based on similar data points in the dataset. Euclidean distance is the shortest distance between two points in a metric space. It is calculated as the square root of the sum of the squared differences between the corresponding coordinates of the two points. Manhattan distance measures the distance between two points by summing the absolute differences of their coordinates. Even tough, I did the 2 different KNN tests, I got the same results as seen below in Table $10$ . The accuracy of KNN Manhattan and Euclidean is $97.95$ % with specificity of $1$ and sensitivity of $0$.
+
+```{r}
+#| echo: false
+#| results: "hide"
+#| message: false
+#| warning: false
+### KNN
+### Manhattan distance
+knn.man <- kknn(Heart.Disease.Status ~ ., 
+                train.set, 
+                test.set, 
+                k = round(sqrt(nrow(train.set))), 
+                distance = 1)
+
+### Manhattan summary 
+summary(knn.man)
+
+### predictions using Manhattan
+preds.man <- fitted(knn.man)
+head(preds.man)
+
+### confusion matrix Manhattan
+conf.mat.hc.man <- confusionMatrix(preds.man, test.set$Heart.Disease.Status)
+conf.mat.hc.man$table
+```
+
+\begin{table}[H]
+\centering
+\begin{tabular}{r|rr}
+Prediction & 0 & 1  \\
+\hline 
+0 & 0 & 0 \\
+1  & 381 & 1519   \\
+\end{tabular}
+\caption{Confusion Matrix For KNN Manhattan and Euclidean}
+\end{table}
+
+```{r}
+#| echo: false
+#| results: "hide"
+#| message: false
+#| warning: false
+### KNN
+### Euclidean distance
+knn.euc <- kknn(Heart.Disease.Status ~ ., 
+                train.set, 
+                test.set, 
+                k = round(sqrt(nrow(train.set))), 
+                distance = 2)
+
+### predictions using Euclidean
+preds.euc <- fitted(knn.euc)
+head(preds.euc)
+
+### confusion matrix Euclidean
+conf.mat.hc.euc <- confusionMatrix(preds.euc, test.set$Heart.Disease.Status)
+conf.mat.hc.euc$table
+```
+
+## Naive Bayes
+
+Naive Bayes is used for cassification tasks, based on Bayes’ Theorem to find probabilities of different classes given the features of the data.
+
+```{r}
+#| echo: false
+#| results: "hide"
+#| message: false
+#| warning: false
+### naive Bayes
+nb.hc <- NaiveBayes(Heart.Disease.Status ~ ., data = train.set, usekernel=TRUE)
+
+### predictions for naive Bayes
+preds.nb.hc <- predict(nb.hc, newdata = test.set)
+preds.nb.hc.class <- preds.nb.hc$class
+
+### confusion matrix for naive Bayes
+conf.mat.hc.nb <- confusionMatrix(preds.nb.hc.class, test.set$Heart.Disease.Status)
+conf.mat.hc.nb$table
+```
+
+\begin{table}[H]
+\centering
+\begin{tabular}{r|rr}
+Prediction & 0 & 1  \\
+\hline 
+0 & 0 & 0 \\
+1  & 381 & 1519   \\
+\end{tabular}
+\caption{Confusion Matrix For Naive Bayes}
+\end{table}
+
+Based on Table $11$, the accuracy of Naive Bayes is $97.95$ % with specificity of $1$ and sensitivity of $0$.
+
+## Discriminant Analysis
+
+Discriminant analysis is a statistical technique used to classify observations into predefined classes. By analyzing variances and covariances, discriminant analysis finds linear combinations of features that best separate the groups, maximizing differences between groups while minimizing differences within groups. The 2 main types of discriminant analysis is Linear and Quatractic. LDA is the most commonly used form of discriminant analysis, suitable when the predictor variables are continuous and follow a normal distribution. It assumes that each group has identical variance-covariance matrices. It maximizes the separation between two or more groups by finding linear combinations of predictor variables that best distinguish them. QDA is similar to LDA but allows for distinct variance-covariance matrices for each group, making it more flexible in cases where groups do not have identical covariances. QDA provides better classification accuracy when groups differ in variance-covariance structures. QDA is suitable for complex classification tasks where groups have distinct distributions.
+
+```{r}
+#| echo: false
+#| results: "hide"
+#| message: false
+#| warning: false
+#LDA
+lda_model <- lda(Heart.Disease.Status ~ ., data = data) 
+print(lda_model)
+predictions <- predict(lda_model, data) 
+head(predictions$class) 
+table(predictions$class, data$Heart.Disease.Status) 
+
+```
+
+\begin{table}[H]
+\centering
+\begin{tabular}{r|rr}
+Prediction & 0 & 1  \\
+\hline 
+0 & 0 & 0 \\
+1  & 1903 & 7597   \\
+\end{tabular}
+\caption{Confusion Matrix For LDA}
+\end{table}
+
+Table $12$ is a confusion matrix to predict accuracy of LDA. The accuracy is $79.9684$ %, with sensitivity of $0$ and specificity of $1$.
+
+```{r}
+#| echo: false
+#| results: "hide"
+#| message: false
+#| warning: false
+#QDA
+qda_model <- qda(Heart.Disease.Status ~ ., data = data) 
+print(qda_model) 
+qda_predictions <- predict(qda_model, data) 
+head(qda_predictions$class) 
+table(qda_predictions$class, data$Heart.Disease.Status) 
+```
+
+\begin{table}[H]
+\centering
+\begin{tabular}{r|rr}
+Prediction & 0 & 1  \\
+\hline 
+0 & 9 & 7 \\
+1  & 1894 & 7590   \\
+\end{tabular}
+\caption{Confusion Matrix For QDA}
+\end{table}
+
+Table $13$ is a confusion matrix to predict accuracy of QDA. The accuracy is $79.9989$ %, with sensitivity of $0.0047$ and specificity of $0.9991$.
+
+\newpage
+
+# Conclusion
+
+This data analysis aimed to find a model that was highly predictive of whether a person would have heart disease. The $20$ top risk factors are age, gender, blood pressure, cholesterol level, exercise habits, smoking, family history of heart disease, diabetes, BMI, high blood pressure, low HDL cholesterol, high LDL cholesterol, alcohol consumption, stress level, sleep hours, sugar consumption, triglyceride level, fasting blood sugar, CRP level, and homocysteine level. My goal was to focus on classification and maximize model predictability on new data, while testing for most significant predictors.
+
+My exploratory data analysis revealed that all variables’ responses are equally distributed.  The regression model met all necessary conditions for use, and further transformations were deemed unnecessary. However, I did need to do some data transformation to make the categorical variables numeric for some of the other statistical models, omitting observations with NA values, and breaking the data set into training and testing set. I then used regression models to predict the main cause of heart disease. My analysis revealed statistically discernible evidence that BMI is predictive of heart disease status (p−value \< $0.05$).
+
+Along with the regression models, I tested accuracy, sensitivity, and specificity on all classification and discriminatory models to maximize model predictability. Quadratic Discriminate Analysis was the best model with accuracy of $79.98$%, sensitivity of $0.47$ %, and specificity of $99.91$%. Then, the logistic models with accuracy of $79.97$%, sensitivity of $0$%, and specificity of $100$%. Then, the decisions trees with accuracy of $79.95$%, sensitivity of $0$%, and specificity of $100$%. The worst model was bagging with accuracy of $79$%, sensitivity of $1.31$%, and specificity of $98.49$%.
+
+In conclusion, I found the regression algorithms to perform best at predicting for heart disease, with BMI as the most significant predictor. Our study highlights the importance of considering multiple predictors when modeling risk factors of heart disease. The findings provide valuable insights into the health risk factors influencing heart disease and can inform future research and practical applications medical health science.
+
+\newpage
+
+# References
